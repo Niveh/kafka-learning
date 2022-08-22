@@ -14,11 +14,11 @@ def main():
 
     task_handler = kafka_helper.TaskHandler()
 
-    task_handler.add_task(kafka_helper.Producer(KAFKA_TOPIC))
-    task_handler.add_task(kafka_helper.Consumer(KAFKA_TOPIC))
+    task_handler.add_task(kafka_helper.Producer(topic=KAFKA_TOPIC))
+    task_handler.add_task(kafka_helper.Consumer(topic=KAFKA_TOPIC))
 
     task_handler.run_tasks()
-    time.sleep(30)
+    time.sleep(10)
 
     task_handler.stop_tasks()
 

@@ -32,7 +32,8 @@ class Producer(_KafkaThread):
         self._producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER)
 
         while not self.stop_event.is_set():
-            self._producer.send(self._topic, b"Hello World!")  # topic, message
+            self._producer.send(
+                topic=self._topic, key=b"test_message", value=b"Hello World!")  # topic, message
             time.sleep(1)
 
         self._producer.close()
@@ -50,13 +51,16 @@ class Consumer(_KafkaThread):
     def run(self):
         """Run the consumer thread."""
         self._consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER,
-                                       auto_offset_reset='earliest',
                                        consumer_timeout_ms=1000)
         self._consumer.subscribe([self._topic])  # subscribe to topic
 
         while not self.stop_event.is_set():
             for message in self._consumer:
-                print(message)
+                print(f"\nMessage Topic: {message.topic}")
+                print(f"Message Partition: {message.partition}")
+                print(f"Message Offset: {message.offset}")
+                print(f"Message Key: {message.key.decode('utf-8')}")
+                print(f"Message Value: {message.value.decode('utf-8')}\n")
                 if self.stop_event.is_set():
                     break
 

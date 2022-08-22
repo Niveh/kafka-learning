@@ -98,52 +98,78 @@ class TaskHandler:
             task.join()
 
 
-def __topic_exists(topic_name):
-    """Check if a kafka topic exists.
-
-    Args:
-        topic_name (string): Kafka topic name
-
-    Returns:
-        bool: True if topic exists, False otherwise
+class TopicHandler:
+    """Topic Handler class. Used to initialize the topics by list. Also provides methods to create and delete topics.
     """
-    try:
-        client = KafkaClient(bootstrap_servers=KAFKA_SERVER)
 
-        future = client.cluster.request_update()
-        client.poll(future=future)
+    def __init__(self) -> None:
+        self._admin_client = KafkaAdminClient(bootstrap_servers=KAFKA_SERVER)
+        self._client = KafkaClient(bootstrap_servers=KAFKA_SERVER)
 
-        return topic_name in client.cluster.topics()
+    def topic_exists(self, topic_name):
+        """Check if a kafka topic exists.
 
-    except Exception as ex:
-        print(f"Topic check failed.\nException: {ex}")
-        return False
+        Args:
+            topic_name (string): Kafka topic name
 
-
-def init_topics(topic_list):
-    """Create kafka topics if they do not exist.
-
-    Args:
-        topic_list (dict): List of Kafka topic info
-    """
-    topics_to_create = []
-
-    for topic, info in topic_list.items():
-        if not __topic_exists(topic):
-            new_topic = NewTopic(
-                name=topic, num_partitions=info["partitions"], replication_factor=info["replication_factor"])
-            topics_to_create.append(new_topic)
-
-    if len(topics_to_create) > 0:
+        Returns:
+            bool: True if topic exists, False otherwise
+        """
         try:
-            admin = KafkaAdminClient(bootstrap_servers=KAFKA_SERVER)
-            admin.create_topics(new_topics=topics_to_create,
-                                validate_only=False)
+            client = self._client
 
-            print("Topics created.")
+            future = client.cluster.request_update()
+            client.poll(future=future)
+
+            return topic_name in client.cluster.topics()
 
         except Exception as ex:
-            print(f"Topic creation failed.\nException: {ex}")
+            print(f"Topic check failed.\nException: {ex}")
+            return False
 
-    else:
-        print("No topics to create.")
+    def create_topics(self, topics_to_create):
+        """Create kafka topics.
+
+        Args:
+            topics_to_create (list): Topics to create
+        """
+        if len(topics_to_create) > 0:
+            try:
+                admin = self._admin_client
+                admin.create_topics(new_topics=topics_to_create,
+                                    validate_only=False)
+
+                print("Topics created.")
+
+            except Exception as ex:
+                print(f"Topic creation failed.\nException: {ex}")
+
+        else:
+            print("No topics to create.")
+
+    def delete_topics(self, topics_to_delete):
+        if len(topics_to_delete) > 0:
+            try:
+                admin = self._admin_client
+                admin.delete_topics(topics_to_delete)
+
+                print("Topics deleted.")
+
+            except Exception as ex:
+                print(f"Topic deletion failed.\nException: {ex}")
+
+    def init_topics(self, topic_list):
+        """Create kafka topics if they do not exist.
+
+        Args:
+            topic_list (dict): List of Kafka topic info
+        """
+        topics_to_create = []
+
+        for topic, info in topic_list.items():
+            if not self.topic_exists(topic):
+                new_topic = NewTopic(
+                    name=topic, num_partitions=info["partitions"], replication_factor=info["replication_factor"])
+                topics_to_create.append(new_topic)
+
+        self.create_topics(topics_to_create)

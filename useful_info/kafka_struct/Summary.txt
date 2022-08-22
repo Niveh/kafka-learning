@@ -1,0 +1,9 @@
+"Offset": a part of a partition containing data
+"Partition": a part of a topic containing data
+"Topics": data records in database
+
+"Producer": writes/appends data in records (topics)
+"Consumer": reads data from records (topics)
+
+"Broker": Server
+"Cluster": Multiple topics in a broker (server)

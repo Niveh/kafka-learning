@@ -94,11 +94,11 @@ class TaskHandler:
             task.join()
 
 
-def __topic_exists(topic):
+def __topic_exists(topic_name):
     """Check if a kafka topic exists.
 
     Args:
-        topic (string): Kafka topic name
+        topic_name (string): Kafka topic name
 
     Returns:
         bool: True if topic exists, False otherwise
@@ -109,45 +109,37 @@ def __topic_exists(topic):
         future = client.cluster.request_update()
         client.poll(future=future)
 
-        return topic in client.cluster.topics()
+        return topic_name in client.cluster.topics()
 
     except Exception as ex:
         print(f"Topic check failed.\nException: {ex}")
         return False
 
 
-def __create_topic(topic):
-    """Create a kafka topic.
+def init_topics(topic_list):
+    """Create kafka topics if they do not exist.
 
     Args:
-        topic (string): Kafka topic name
+        topic_list (dict): List of Kafka topic info
     """
-    try:
-        admin = KafkaAdminClient(bootstrap_servers=KAFKA_SERVER)
-        topic = NewTopic(name=topic,
-                         num_partitions=1,
-                         replication_factor=1)
-        admin.create(topic)
-        print(f"Topic '{topic}' created.")
+    topics_to_create = []
 
-    except Exception as ex:
-        print(f"Topic creation failed.\nException: {ex}")
+    for topic, info in topic_list.items():
+        if not __topic_exists(topic):
+            new_topic = NewTopic(
+                name=topic, num_partitions=info["partitions"], replication_factor=info["replication_factor"])
+            topics_to_create.append(new_topic)
 
+    if len(topics_to_create) > 0:
+        try:
+            admin = KafkaAdminClient(bootstrap_servers=KAFKA_SERVER)
+            admin.create_topics(new_topics=topics_to_create,
+                                validate_only=False)
 
-def create_topic_if_not_exists(topic):
-    """Create a kafka topic if it does not exist.
+            print("Topics created.")
 
-    Args:
-        topic (string): Kafka topic name
-    """
-    if not __topic_exists(topic):
-        print(f"Topic '{topic}' does not exist.\nCreating topic...")
-        __create_topic(topic)
+        except Exception as ex:
+            print(f"Topic creation failed.\nException: {ex}")
 
     else:
-        print(f"Topic '{topic}' exists.")
-
-
-def init_topics(topic_list):
-    for topic in topic_list:
-        create_topic_if_not_exists(topic)
+        print("No topics to create.")

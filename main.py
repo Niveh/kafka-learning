@@ -3,9 +3,13 @@ import time
 
 TEST_TOPIC = 'test'
 
-topics = [
-    TEST_TOPIC
-]
+topics = {
+    TEST_TOPIC: {
+        "name": TEST_TOPIC,
+        "partitions": 1,
+        "replication_factor": 1
+    }
+}
 
 
 def main():

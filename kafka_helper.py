@@ -1,5 +1,7 @@
 import threading
 import time
+import json
+from data import get_registered_user
 from kafka import KafkaConsumer, KafkaProducer, KafkaAdminClient, KafkaClient
 from kafka.admin import NewTopic
 
@@ -29,11 +31,12 @@ class Producer(_KafkaThread):
 
     def run(self):
         """Run the producer thread."""
-        self._producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER)
+        self._producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER,
+                                       value_serializer=lambda m: json.dumps(m).encode('utf-8'))
 
         while not self.stop_event.is_set():
             self._producer.send(
-                topic=self._topic, key=b"test_message", value=b"Hello World!")  # topic, message
+                topic=self._topic, value=get_registered_user())
             time.sleep(1)
 
         self._producer.close()
@@ -60,7 +63,8 @@ class Consumer(_KafkaThread):
                 print(f"\nMessage Topic: {message.topic}")
                 print(f"Message Partition: {message.partition}")
                 print(f"Message Offset: {message.offset}")
-                print(f"Message Key: {message.key.decode('utf-8')}")
+                print(
+                    f"Message Key: {message.key.decode('utf-8') if message.key else None}")
                 print(f"Message Value: {message.value.decode('utf-8')}\n")
 
                 if self.stop_event.is_set():

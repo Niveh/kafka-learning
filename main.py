@@ -1,7 +1,7 @@
 import kafka_helper
 import time
 
-TEST_TOPIC = 'test'
+TEST_TOPIC = 'single_partition_test'
 
 topics = {
     TEST_TOPIC: {

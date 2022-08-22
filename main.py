@@ -1,21 +1,20 @@
 import kafka_helper
 import time
 
-KAFKA_TOPIC = 'test'
+TEST_TOPIC = 'test'
+
+topics = [
+    TEST_TOPIC
+]
 
 
 def main():
-    if not kafka_helper.topic_exists(KAFKA_TOPIC):
-        print(f"Topic {KAFKA_TOPIC} does not exist.\nCreating topic...")
-        kafka_helper.create_topic(KAFKA_TOPIC)
-
-    else:
-        print(f"Topic {KAFKA_TOPIC} exists.")
+    kafka_helper.init_topics(topics)
 
     task_handler = kafka_helper.TaskHandler()
 
-    task_handler.add_task(kafka_helper.Producer(topic=KAFKA_TOPIC))
-    task_handler.add_task(kafka_helper.Consumer(topic=KAFKA_TOPIC))
+    task_handler.add_task(kafka_helper.Producer(topic=TEST_TOPIC))
+    task_handler.add_task(kafka_helper.Consumer(topic=TEST_TOPIC))
 
     task_handler.run_tasks()
     time.sleep(10)

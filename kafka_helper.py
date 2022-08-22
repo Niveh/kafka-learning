@@ -61,6 +61,7 @@ class Consumer(_KafkaThread):
                 print(f"Message Offset: {message.offset}")
                 print(f"Message Key: {message.key.decode('utf-8')}")
                 print(f"Message Value: {message.value.decode('utf-8')}\n")
+
                 if self.stop_event.is_set():
                     break
 
@@ -92,7 +93,7 @@ class TaskHandler:
             task.join()
 
 
-def topic_exists(topic):
+def __topic_exists(topic):
     """Check if a kafka topic exists.
 
     Args:
@@ -114,7 +115,7 @@ def topic_exists(topic):
         return False
 
 
-def create_topic(topic):
+def __create_topic(topic):
     """Create a kafka topic.
 
     Args:
@@ -126,7 +127,26 @@ def create_topic(topic):
                          num_partitions=1,
                          replication_factor=1)
         admin.create(topic)
-        print(f"Topic {topic} created.")
+        print(f"Topic '{topic}' created.")
 
     except Exception as ex:
         print(f"Topic creation failed.\nException: {ex}")
+
+
+def create_topic_if_not_exists(topic):
+    """Create a kafka topic if it does not exist.
+
+    Args:
+        topic (string): Kafka topic name
+    """
+    if not __topic_exists(topic):
+        print(f"Topic '{topic}' does not exist.\nCreating topic...")
+        __create_topic(topic)
+
+    else:
+        print(f"Topic '{topic}' exists.")
+
+
+def init_topics(topic_list):
+    for topic in topic_list:
+        create_topic_if_not_exists(topic)

@@ -51,6 +51,7 @@ class Consumer(_KafkaThread):
     def run(self):
         """Run the consumer thread."""
         self._consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER,
+                                       auto_offset_reset='earliest',
                                        consumer_timeout_ms=1000)
         self._consumer.subscribe([self._topic])  # subscribe to topic
 
